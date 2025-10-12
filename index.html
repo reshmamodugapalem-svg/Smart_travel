@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GlobeQuest AI – Smart Travel Agency 🌍</title>
+  <meta name="description" content="TripVerse - AI-powered custom travel planning with multilingual support and beautiful itineraries." />
+  <link rel="icon" href="favicon.ico" />
+
+  <!-- Tailwind + Icons + Markdown -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #fef3c7 0%, #dbeafe 40%, #ede9fe 100%);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 40px rgba(59, 130, 246, 0.25);
+    }
+
+    .gradient-text {
+      background: linear-gradient(to right, #2563eb, #9333ea, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .btn-modern {
+      background: linear-gradient(90deg, #2563eb, #9333ea);
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .btn-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(99, 102, 241, 0.6);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .scrollbar::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, #6366f1, #9333ea);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-6">
+  <div class="glass rounded-3xl p-8 w-full max-w-7xl flex flex-col md:flex-row gap-8 fade-in border border-gray-200">
+
+    <!-- 🌏 Left Panel -->
+    <div class="md:w-1/2 w-full flex flex-col justify-between p-4">
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h1 class="text-5xl font-extrabold gradient-text flex items-center gap-2">
+            <i data-lucide="plane" class="w-9 h-9 text-blue-500"></i> TripVerse
+          </h1>
+
+          <!-- 🌐 Language Selector -->
+          <select id="languageSelect" class="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm">
+            <option value="en" selected>🇺🇸 English</option>
+            <option value="hi">🇮🇳 Hindi</option>
+            <option value="te">TE Telugu</option>
+            <option value="ur">UR Urdu</option>
+            <option value="ta">TA Tamil</option>
+            <option value="de">🇩🇪 German</option>
+            <option value="zh">🇨🇳 Chinese</option>
+          </select>
+        </div>
+
+        <p class="text-gray-700 text-lg mb-8">
+          ✈ Your Smart AI Travel Agency – Create Personalized Trips Instantly
+        </p>
+
+        <form id="travel-form" class="flex flex-col gap-4">
+          <label for="prompt" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
+            <i data-lucide="map" class="w-5 h-5 text-indigo-500"></i>
+            Describe Your Dream Trip 🌅
+          </label>
+
+          <textarea id="prompt"
+            placeholder="E.g., 6-day honeymoon trip to Paris in March with romantic spots, shopping, and fine dining"
+            rows="5"
+            class="p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 resize-none text-gray-800 shadow-sm"></textarea>
+
+          <button type="submit"
+            class="btn-modern text-white py-3 rounded-xl text-base font-semibold flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-5 h-5"></i> Generate My Luxury Itinerary
+          </button>
+        </form>
+      </div>
+
+      <div class="text-sm text-gray-600 mt-6 border-t pt-3">
+        <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500"></i>
+        Tip: Include travel dates, companions, and interests for the best recommendations.
+      </div>
+    </div>
+
+    <!-- 🗺 Right Panel -->
+    <div class="md:w-1/2 w-full bg-white/70 rounded-2xl border border-gray-200 p-6 shadow-inner relative">
+      <div id="loader" class="hidden text-center text-indigo-600 font-semibold mt-10">
+        <i data-lucide="loader" class="animate-spin inline w-6 h-6 mr-2"></i>
+        Crafting your journey...
+      </div>
+
+      <div id="error" class="hidden bg-red-100 border border-red-300 text-red-800 p-3 rounded-xl text-center font-medium"></div>
+
+      <div id="output" class="hidden overflow-auto max-h-[500px] fade-in scrollbar"></div>
+
+      <div id="placeholder" class="text-center text-gray-400 mt-16 italic">
+        <i data-lucide="globe" class="w-10 h-10 mx-auto mb-3 text-gray-400"></i>
+        Your personalized itinerary will appear here soon... 🌴
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧠 AI Script -->
+  <script>
+    lucide.createIcons();
+
+    const apiKey = "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"; // 🔒 WARNING: Don't use this in production!
+    const baseURL = "https://openrouter.ai/api/v1";
+    const referer = "http://localhost";
+    const title = "GlobeQuest AI";
+
+    const form = document.getElementById("travel-form");
+    const promptInput = document.getElementById("prompt");
+    const outputDiv = document.getElementById("output");
+    const placeholder = document.getElementById("placeholder");
+    const loader = document.getElementById("loader");
+    const errorBox = document.getElementById("error");
+    const languageSelect = document.getElementById("languageSelect");
+
+    let lastItinerary = ""; // store original English content
+
+    async function getTripPlan(prompt) {
+      const response = await fetch(`${baseURL}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": referer,
+          "X-Title": title,
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are GlobeQuest AI, a world-class travel consultant. 
+              Generate a visually rich, day-wise itinerary in Markdown.
+              Include emojis, destination names, local experiences, and Google Maps links.
+              Add a trip title and a short introductory paragraph.`
+            },
+            { role: "user", content: prompt }
+          ]
+        })
+      });
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "";
+    }
+
+    async function translateText(text, targetLang) {
+      if (targetLang === "en") return text;
+      const response = await fetch(`${baseURL}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini",
+          messages: [
+            { role: "system", content: `You are a translation assistant. Translate all text into ${targetLang}. Keep the formatting and emojis.` },
+            { role: "user", content: text }
+          ]
+        })
+      });
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || text;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const userPrompt = promptInput.value.trim();
+      if (!userPrompt) return alert("Please describe your trip first!");
+
+      loader.classList.remove("hidden");
+      errorBox.classList.add("hidden");
+      placeholder.classList.add("hidden");
+      outputDiv.classList.add("hidden");
+
+      try {
+        const itinerary = await getTripPlan(userPrompt);
+        lastItinerary = itinerary;
+
+        const translated = await translateText(itinerary, languageSelect.value);
+        outputDiv.innerHTML = `<div class="prose prose-sm sm:prose-lg max-w-none text-gray-800">${marked.parse(translated)}</div>`;
+        outputDiv.classList.remove("hidden");
+      } catch (error) {
+        errorBox.textContent = "❌ Failed to generate itinerary: " + error.message;
+        errorBox.classList.remove("hidden");
+      } finally {
+        loader.classList.add("hidden");
+      }
+    });
+
+    // 🌐 On language change, re-translate existing itinerary
+    languageSelect.addEventListener("change", async () => {
+      if (!lastItinerary) return;
+      loader.classList.remove("hidden");
+      const translated = await translateText(lastItinerary, languageSelect.value);
+      outputDiv.innerHTML = `<div class="prose prose-sm sm:prose-lg max-w-none text-gray-800">${marked.parse(translated)}</div>`;
+      loader.classList.add("hidden");
+    });
+  </script>
+</body>
+</html>
