@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GlobeQuest AI – Smart Travel Agency 🌍</title>
-  <meta name="description" content="TripVerse - AI-powered custom travel planning with multilingual support and beautiful itineraries." />
-  <link rel="icon" href="favicon.ico" />
+  <title>GlobeQuest AI – Smart Travel Planner 🌍</title>
 
-  <!-- Tailwind + Icons + Markdown -->
+  <!-- Tailwind + Markdown + Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -42,15 +40,6 @@
       box-shadow: 0 6px 25px rgba(99, 102, 241, 0.6);
     }
 
-    .fade-in {
-      animation: fadeIn 0.6s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     .scrollbar::-webkit-scrollbar {
       width: 8px;
     }
@@ -63,7 +52,7 @@
 </head>
 
 <body class="min-h-screen flex items-center justify-center p-6">
-  <div class="glass rounded-3xl p-8 w-full max-w-7xl flex flex-col md:flex-row gap-8 fade-in border border-gray-200">
+  <div class="glass rounded-3xl p-8 w-full max-w-7xl flex flex-col md:flex-row gap-8 border border-gray-200">
 
     <!-- 🌏 Left Panel -->
     <div class="md:w-1/2 w-full flex flex-col justify-between p-4">
@@ -75,41 +64,68 @@
 
           <!-- 🌐 Language Selector -->
           <select id="languageSelect" class="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm">
-            <option value="en" selected>🇺🇸 English</option>
-            <option value="hi">🇮🇳 Hindi</option>
-            <option value="te">TE Telugu</option>
-            <option value="ur">UR Urdu</option>
-            <option value="ta">TA Tamil</option>
-            <option value="de">🇩🇪 German</option>
-            <option value="zh">🇨🇳 Chinese</option>
+            <option value="en" selected>English</option>
+            <option value="hi">Hindi</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+            <option value="ta">Tamil</option>
+            <option value="de">German</option>
+            <option value="zh">Chinese</option>
           </select>
         </div>
 
         <p class="text-gray-700 text-lg mb-8">
-          ✈ Your Smart AI Travel Agency – Create Personalized Trips Instantly
+          ✈ Your Smart AI Travel Planner – Personalized Trips Based on Location & Budget in ₹
         </p>
 
         <form id="travel-form" class="flex flex-col gap-4">
-          <label for="prompt" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
-            <i data-lucide="map" class="w-5 h-5 text-indigo-500"></i>
-            Describe Your Dream Trip 🌅
-          </label>
+          <!-- 📍 Location -->
+          <div>
+            <label for="location" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-5 h-5 text-indigo-500"></i>
+              Where do you want to go?
+            </label>
+            <input id="location" type="text" placeholder="e.g., Goa, Paris, Maldives, or Manali"
+              class="p-3 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 w-full shadow-sm" />
+          </div>
 
-          <textarea id="prompt"
-            placeholder="E.g., 6-day honeymoon trip to Paris in March with romantic spots, shopping, and fine dining"
-            rows="5"
-            class="p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 resize-none text-gray-800 shadow-sm"></textarea>
+          <!-- 💰 Budget -->
+          <div>
+            <label for="budget" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
+              <i data-lucide="wallet" class="w-5 h-5 text-green-500"></i>
+              What’s your travel budget (in ₹ INR)?
+            </label>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-lg text-gray-600">₹</span>
+              <input id="budget" type="number" placeholder="e.g., 50000"
+                class="p-3 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 w-full shadow-sm" />
+            </div>
+            <p class="text-sm text-gray-500 mt-1">Example: ₹50,000 for domestic or ₹2,00,000 for international trips.</p>
+          </div>
 
+          <!-- 🧳 Trip Description -->
+          <div>
+            <label for="prompt" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
+              <i data-lucide="map" class="w-5 h-5 text-indigo-500"></i>
+              Describe Your Dream Trip 🌅
+            </label>
+            <textarea id="prompt"
+              placeholder="e.g., 6-day honeymoon trip in December with beaches, adventure, and luxury stay"
+              rows="5"
+              class="p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 resize-none text-gray-800 shadow-sm"></textarea>
+          </div>
+
+          <!-- 🚀 Button -->
           <button type="submit"
             class="btn-modern text-white py-3 rounded-xl text-base font-semibold flex items-center justify-center gap-2">
-            <i data-lucide="sparkles" class="w-5 h-5"></i> Generate My Luxury Itinerary
+            <i data-lucide="sparkles" class="w-5 h-5"></i> Generate My Itinerary
           </button>
         </form>
       </div>
 
       <div class="text-sm text-gray-600 mt-6 border-t pt-3">
         <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500"></i>
-        Tip: Include travel dates, companions, and interests for the best recommendations.
+        Tip: Mention season, number of travelers, and preferred activities for better results.
       </div>
     </div>
 
@@ -135,12 +151,14 @@
   <script>
     lucide.createIcons();
 
-    const apiKey = "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"; // 🔒 WARNING: Don't use this in production!
+    const apiKey = "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"; // Replace safely
     const baseURL = "https://openrouter.ai/api/v1";
     const referer = "http://localhost";
     const title = "GlobeQuest AI";
 
     const form = document.getElementById("travel-form");
+    const locationInput = document.getElementById("location");
+    const budgetInput = document.getElementById("budget");
     const promptInput = document.getElementById("prompt");
     const outputDiv = document.getElementById("output");
     const placeholder = document.getElementById("placeholder");
@@ -148,9 +166,9 @@
     const errorBox = document.getElementById("error");
     const languageSelect = document.getElementById("languageSelect");
 
-    let lastItinerary = ""; // store original English content
+    let lastItinerary = "";
 
-    async function getTripPlan(prompt) {
+    async function getTripPlan(fullPrompt) {
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: "POST",
         headers: {
@@ -164,12 +182,12 @@
           messages: [
             {
               role: "system",
-              content: `You are GlobeQuest AI, a world-class travel consultant. 
-              Generate a visually rich, day-wise itinerary in Markdown.
-              Include emojis, destination names, local experiences, and Google Maps links.
-              Add a trip title and a short introductory paragraph.`
+              content: `You are GlobeQuest AI, a premium Indian travel consultant.
+              Generate a day-wise travel itinerary in Markdown based on user's location, description, and INR budget.
+              Use Indian currency (₹), include estimated daily costs, accommodation, transport, food, and attractions.
+              Suggest 2–3 hotel options within budget and include emojis and Google Maps links.`
             },
-            { role: "user", content: prompt }
+            { role: "user", content: fullPrompt }
           ]
         })
       });
@@ -180,6 +198,7 @@
 
     async function translateText(text, targetLang) {
       if (targetLang === "en") return text;
+
       const response = await fetch(`${baseURL}/chat/completions`, {
         method: "POST",
         headers: {
@@ -189,7 +208,10 @@
         body: JSON.stringify({
           model: "openai/gpt-4o-mini",
           messages: [
-            { role: "system", content: `You are a translation assistant. Translate all text into ${targetLang}. Keep the formatting and emojis.` },
+            {
+              role: "system",
+              content: `Translate this text into ${targetLang}, keeping emojis, currency (₹), and formatting.`
+            },
             { role: "user", content: text }
           ]
         })
@@ -201,8 +223,22 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const userPrompt = promptInput.value.trim();
-      if (!userPrompt) return alert("Please describe your trip first!");
+
+      const location = locationInput.value.trim();
+      const budget = budgetInput.value.trim();
+      const description = promptInput.value.trim();
+
+      if (!location || !budget || !description) {
+        alert("Please fill in all fields: location, budget (₹), and trip description!");
+        return;
+      }
+
+      const combinedPrompt = `
+        Plan a personalized trip to ${location}.
+        Total budget: ₹${budget} INR.
+        Trip details: ${description}.
+        Include cost breakdown in rupees (₹) for hotels, food, and activities.
+      `;
 
       loader.classList.remove("hidden");
       errorBox.classList.add("hidden");
@@ -210,12 +246,13 @@
       outputDiv.classList.add("hidden");
 
       try {
-        const itinerary = await getTripPlan(userPrompt);
+        const itinerary = await getTripPlan(combinedPrompt);
         lastItinerary = itinerary;
-
         const translated = await translateText(itinerary, languageSelect.value);
+
         outputDiv.innerHTML = `<div class="prose prose-sm sm:prose-lg max-w-none text-gray-800">${marked.parse(translated)}</div>`;
         outputDiv.classList.remove("hidden");
+        lucide.createIcons();
       } catch (error) {
         errorBox.textContent = "❌ Failed to generate itinerary: " + error.message;
         errorBox.classList.remove("hidden");
@@ -224,13 +261,13 @@
       }
     });
 
-    // 🌐 On language change, re-translate existing itinerary
     languageSelect.addEventListener("change", async () => {
       if (!lastItinerary) return;
       loader.classList.remove("hidden");
       const translated = await translateText(lastItinerary, languageSelect.value);
       outputDiv.innerHTML = `<div class="prose prose-sm sm:prose-lg max-w-none text-gray-800">${marked.parse(translated)}</div>`;
       loader.classList.add("hidden");
+      lucide.createIcons();
     });
   </script>
 </body>
