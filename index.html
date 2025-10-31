@@ -1,275 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GlobeQuest AI – Smart Travel Planner 🌍</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trip Planner – Smart Travel Itinerary 🌴</title>
 
-  <!-- Tailwind + Markdown + Icons -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- marked.js -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    body {
-      background: linear-gradient(135deg, #fef3c7 0%, #dbeafe 40%, #ede9fe 100%);
-      font-family: 'Inter', sans-serif;
-      overflow-x: hidden;
+    :root{
+      --accent-1:#06b6d4;
+      --accent-2:#10b981;
+      --accent-3:#f97316;
+      --glass-alpha:0.75;
     }
-
-    .glass {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(20px);
-      box-shadow: 0 8px 40px rgba(59, 130, 246, 0.25);
+    html,body{height:100%;margin:0;padding:0;overflow-x:hidden;}
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(to bottom right,#a7f3d0 0%,#bfdbfe 35%,#fde68a 100%);
+      background-attachment:fixed;
+      color:#0f172a;
     }
-
-    .gradient-text {
-      background: linear-gradient(to right, #2563eb, #9333ea, #f43f5e);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .sky-wave{
+      position:fixed;inset:0;
+      background:
+        radial-gradient(circle at 20% 20%,rgba(255,255,255,0.6) 0%,transparent 60%),
+        radial-gradient(circle at 80% 40%,rgba(255,255,255,0.4) 0%,transparent 50%),
+        radial-gradient(circle at 50% 70%,rgba(255,255,255,0.5) 0%,transparent 55%);
+      animation:drift 40s linear infinite alternate;
+      z-index:0;pointer-events:none;filter:blur(60px);
     }
-
-    .btn-modern {
-      background: linear-gradient(90deg, #2563eb, #9333ea);
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-      transition: all 0.3s ease;
-    }
-
-    .btn-modern:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(99, 102, 241, 0.6);
-    }
-
-    .scrollbar::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .scrollbar::-webkit-scrollbar-thumb {
-      background: linear-gradient(to bottom, #6366f1, #9333ea);
-      border-radius: 8px;
-    }
+    @keyframes drift{from{transform:translateY(0) translateX(0);}to{transform:translateY(-40px) translateX(30px);}}
+    .glass{background:rgba(255,255,255,var(--glass-alpha));backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.5);box-shadow:0 8px 40px rgba(0,0,0,0.08);}
+    .gradient-text{background:linear-gradient(90deg,var(--accent-1),var(--accent-2),var(--accent-3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .btn-modern{background-image:linear-gradient(90deg,var(--accent-1),var(--accent-3));box-shadow:0 10px 30px rgba(6,182,212,0.25);transition:transform 0.1s ease-in;}
+    .btn-modern:hover{transform:translateY(-2px);}
+    .btn-modern:active{transform:translateY(1px);}
+    .spinner{border:4px solid rgba(0,0,0,0.06);border-left-color:var(--accent-1);width:28px;height:28px;border-radius:50%;animation:spin 1s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .floating-icon{position:absolute;opacity:0.9;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.15));transition:transform 0.8s ease-in-out;}
+    .output-prose a{color:#0284c7;text-decoration:underline;}
   </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center p-6">
-  <div class="glass rounded-3xl p-8 w-full max-w-7xl flex flex-col md:flex-row gap-8 border border-gray-200">
+<body class="pt-12">
+  <div class="sky-wave"></div>
+  <div id="floatingIcons"></div>
 
-    <!-- 🌏 Left Panel -->
-    <div class="md:w-1/2 w-full flex flex-col justify-between p-4">
-      <div>
-        <div class="flex justify-between items-center mb-4">
-          <h1 class="text-5xl font-extrabold gradient-text flex items-center gap-2">
-            <i data-lucide="plane" class="w-9 h-9 text-blue-500"></i> TripVerse
-          </h1>
+  <main class="relative z-20 container mx-auto px-6 pb-12">
+    <div class="grid lg:grid-cols-12 gap-8 items-stretch">
 
-          <!-- 🌐 Language Selector -->
-          <select id="languageSelect" class="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm">
-            <option value="en" selected>English</option>
-            <option value="hi">Hindi</option>
-            <option value="fr">French</option>
-            <option value="es">Spanish</option>
-            <option value="ta">Tamil</option>
-            <option value="de">German</option>
-            <option value="zh">Chinese</option>
-          </select>
-        </div>
-
-        <p class="text-gray-700 text-lg mb-8">
-          ✈ Your Smart AI Travel Planner – Personalized Trips Based on Location & Budget in ₹
-        </p>
-
-        <form id="travel-form" class="flex flex-col gap-4">
-          <!-- 📍 Location -->
-          <div>
-            <label for="location" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
-              <i data-lucide="map-pin" class="w-5 h-5 text-indigo-500"></i>
-              Where do you want to go?
-            </label>
-            <input id="location" type="text" placeholder="e.g., Goa, Paris, Maldives, or Manali"
-              class="p-3 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 w-full shadow-sm" />
-          </div>
-
-          <!-- 💰 Budget -->
-          <div>
-            <label for="budget" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
-              <i data-lucide="wallet" class="w-5 h-5 text-green-500"></i>
-              What’s your travel budget (in ₹ INR)?
-            </label>
-            <div class="flex items-center gap-2">
-              <span class="font-semibold text-lg text-gray-600">₹</span>
-              <input id="budget" type="number" placeholder="e.g., 50000"
-                class="p-3 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 w-full shadow-sm" />
+      <!-- Left Form Section -->
+      <section class="lg:col-span-6">
+        <div class="glass rounded-3xl p-8 lg:p-10 relative">
+          <div class="flex justify-between items-start">
+            <div>
+              <h1 class="text-4xl sm:text-5xl font-extrabold gradient-text flex items-center gap-3">
+                <i data-lucide="luggage" class="w-8 h-8"></i> Trip Planner
+              </h1>
+              <p class="mt-2 text-slate-600">Plan your dream getaway — day-by-day itineraries, cozy stays & fun activities 🌞</p>
             </div>
-            <p class="text-sm text-gray-500 mt-1">Example: ₹50,000 for domestic or ₹2,00,000 for international trips.</p>
+            <div class="flex flex-col items-end">
+              <label for="languageSelect" class="text-xs text-slate-500 mb-1">Language</label>
+              <select id="languageSelect" class="w-36 p-2 rounded-xl border border-slate-200 bg-white text-sm shadow-sm">
+                <option value="en" selected>English</option>
+                <option value="hi">Hindi</option>
+                <option value="fr">French</option>
+                <option value="es">Spanish</option>
+                <option value="ta">Tamil</option>
+                <option value="de">German</option>
+                <option value="zh">Chinese</option>
+              </select>
+            </div>
           </div>
 
-          <!-- 🧳 Trip Description -->
-          <div>
-            <label for="prompt" class="font-semibold text-gray-700 text-lg flex items-center gap-2">
-              <i data-lucide="map" class="w-5 h-5 text-indigo-500"></i>
-              Describe Your Dream Trip 🌅
-            </label>
-            <textarea id="prompt"
-              placeholder="e.g., 6-day honeymoon trip in December with beaches, adventure, and luxury stay"
-              rows="5"
-              class="p-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-indigo-500 resize-none text-gray-800 shadow-sm"></textarea>
+          <hr class="my-6 border-slate-100">
+
+          <form id="travel-form" class="grid grid-cols-1 gap-4">
+            <!-- Destination & Days -->
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="map-pin"></i> Destination</label>
+                <input id="location" type="text" placeholder="e.g., Bali, Paris, Goa" class="mt-2 p-3 rounded-xl border border-slate-200 w-full" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="calendar"></i> Days</label>
+                <input id="days" type="number" min="1" placeholder="e.g., 5" class="mt-2 p-3 rounded-xl border border-slate-200 w-full" />
+              </div>
+            </div>
+
+            <!-- 🗓 New: Travel Time -->
+            <div>
+              <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="clock"></i> When do you plan to travel?</label>
+              <input id="travelTime" type="text" placeholder="e.g., December 2025 or Next summer" class="mt-2 p-3 rounded-xl border border-slate-200 w-full" />
+            </div>
+
+            <!-- Budget & Room Type -->
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="wallet"></i> Budget (₹)</label>
+                <input id="budget" type="number" min="0" placeholder="e.g., 50000" class="mt-2 p-3 rounded-xl border border-slate-200 w-full" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="bed"></i> Room Type</label>
+                <select id="roomType" class="mt-2 p-3 rounded-xl border border-slate-200 w-full">
+                  <option>Standard</option><option>Deluxe</option><option>Luxury</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Vehicle & Guide -->
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="car"></i> Vehicle & Driver?</label>
+                <select id="vehicle" class="mt-2 p-3 rounded-xl border border-slate-200 w-full">
+                  <option>Yes</option><option>No</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="compass"></i> Tourist Guide?</label>
+                <select id="guide" class="mt-2 p-3 rounded-xl border border-slate-200 w-full">
+                  <option>Yes</option><option>No</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Experience Type -->
+            <div>
+              <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="sparkles"></i> What type of experience are you looking for?</label>
+              <select id="experience" class="mt-2 p-3 rounded-xl border border-slate-200 w-full">
+                <option>Adventure</option>
+                <option>Relaxation</option>
+                <option>Culture</option>
+                <option>Nature</option>
+                <option>Luxury</option>
+                <option>Budget-friendly</option>
+              </select>
+            </div>
+
+            <!-- Travel Companions -->
+            <div>
+              <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="users"></i> Who are you traveling with?</label>
+              <select id="companions" class="mt-2 p-3 rounded-xl border border-slate-200 w-full">
+                <option>Solo</option>
+                <option>Couple</option>
+                <option>Family</option>
+                <option>Friends</option>
+              </select>
+            </div>
+
+            <!-- Transport Mode -->
+            <div>
+              <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="train"></i> Preferred mode of transport?</label>
+              <select id="transport" class="mt-2 p-3 rounded-xl border border-slate-200 w-full">
+                <option>Car</option>
+                <option>Train</option>
+                <option>Flight</option>
+                <option>Cruise</option>
+                <option>Mixed</option>
+              </select>
+            </div>
+
+            <!-- Accommodation -->
+            <div>
+              <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="home"></i> What kind of accommodation do you prefer?</label>
+              <select id="accommodation" class="mt-2 p-3 rounded-xl border border-slate-200 w-full">
+                <option>Hotel</option>
+                <option>Villa</option>
+                <option>Hostel</option>
+                <option>Resort</option>
+                <option>Homestay</option>
+              </select>
+            </div>
+
+            <!-- Prompt -->
+            <div>
+              <label class="text-sm font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="map"></i> Describe your dream trip</label>
+              <textarea id="prompt" rows="4" placeholder="e.g., Honeymoon in Bali — beaches, snorkeling, romantic dinners" class="mt-2 p-4 rounded-xl border border-slate-200 w-full"></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 items-center mt-2">
+              <button id="generateBtn" type="submit" class="btn-modern text-white py-3 px-5 rounded-xl text-sm font-semibold flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> Generate Itinerary
+              </button>
+              <button id="sampleBtn" type="button" class="text-sm px-4 py-2 rounded-xl border border-slate-200 bg-white hover:shadow-sm">
+                <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Sample
+              </button>
+            </div>
+          </form>
+
+          <div class="mt-6 text-xs text-slate-400">Powered by Trip Planner • INR pricing • Travel smarter ✈</div>
+        </div>
+      </section>
+
+      <!-- Right Itinerary Display -->
+      <aside class="lg:col-span-6">
+        <div class="glass rounded-3xl p-6 h-full flex flex-col">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <i data-lucide="globe" class="w-5 h-5 text-sky-500"></i> Your Itinerary
+            </h2>
+            <div class="flex items-center gap-3">
+              <div id="loader" class="hidden items-center gap-2">
+                <div class="spinner"></div>
+                <span class="text-sm text-slate-600">Crafting your trip…</span>
+              </div>
+            </div>
           </div>
 
-          <!-- 🚀 Button -->
-          <button type="submit"
-            class="btn-modern text-white py-3 rounded-xl text-base font-semibold flex items-center justify-center gap-2">
-            <i data-lucide="sparkles" class="w-5 h-5"></i> Generate My Itinerary
-          </button>
-        </form>
-      </div>
+          <div id="placeholder" class="flex-1 rounded-xl border-2 border-dashed border-slate-100 bg-white/50 flex flex-col items-center justify-center text-slate-400 p-6">
+            <i data-lucide="palm-tree" class="w-12 h-12 mb-3"></i>
+            <div class="text-center">
+              <div class="text-lg font-medium text-slate-700">Your itinerary will appear here</div>
+              <p class="mt-2 text-sm">Fill details & click <span class="font-semibold">Generate Itinerary</span>.</p>
+            </div>
+          </div>
 
-      <div class="text-sm text-gray-600 mt-6 border-t pt-3">
-        <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500"></i>
-        Tip: Mention season, number of travelers, and preferred activities for better results.
-      </div>
+          <div id="output" class="hidden output-prose overflow-auto mt-2 prose max-w-none p-4 bg-white/70 rounded-xl shadow-inner"></div>
+          <div id="error" class="hidden mt-3 text-sm text-red-700 bg-red-50 p-3 rounded-xl border border-red-100"></div>
+        </div>
+      </aside>
     </div>
+  </main>
 
-    <!-- 🗺 Right Panel -->
-    <div class="md:w-1/2 w-full bg-white/70 rounded-2xl border border-gray-200 p-6 shadow-inner relative">
-      <div id="loader" class="hidden text-center text-indigo-600 font-semibold mt-10">
-        <i data-lucide="loader" class="animate-spin inline w-6 h-6 mr-2"></i>
-        Crafting your journey...
-      </div>
-
-      <div id="error" class="hidden bg-red-100 border border-red-300 text-red-800 p-3 rounded-xl text-center font-medium"></div>
-
-      <div id="output" class="hidden overflow-auto max-h-[500px] fade-in scrollbar"></div>
-
-      <div id="placeholder" class="text-center text-gray-400 mt-16 italic">
-        <i data-lucide="globe" class="w-10 h-10 mx-auto mb-3 text-gray-400"></i>
-        Your personalized itinerary will appear here soon... 🌴
-      </div>
-    </div>
-  </div>
-
-  <!-- 🧠 AI Script -->
   <script>
     lucide.createIcons();
 
-    const apiKey = "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"; // Replace safely
-    const baseURL = "https://openrouter.ai/api/v1";
-    const referer = "http://localhost";
-    const title = "GlobeQuest AI";
+    /* Floating icons 🌴 */
+    (function(){
+      const container=document.getElementById('floatingIcons');
+      ['sun','plane','palm-tree','cocktail'].forEach((n,i)=>{
+        const el=document.createElement('div');
+        el.className='floating-icon';
+        el.style.left=(10+i*20)+'%';
+        el.style.top=(10+i*10)+'vh';
+        // ✅ Fixed: added proper quotes around HTML string
+        el.innerHTML = `<i data-lucide="${n}" class="w-14 h-14 text-white opacity-70"></i>`;
+        container.appendChild(el);
+      });
+      lucide.createIcons();
+    })();
 
-    const form = document.getElementById("travel-form");
-    const locationInput = document.getElementById("location");
-    const budgetInput = document.getElementById("budget");
-    const promptInput = document.getElementById("prompt");
-    const outputDiv = document.getElementById("output");
-    const placeholder = document.getElementById("placeholder");
-    const loader = document.getElementById("loader");
-    const errorBox = document.getElementById("error");
-    const languageSelect = document.getElementById("languageSelect");
+    /* DOM */
+    const form=document.getElementById('travel-form');
+    const locationInput=document.getElementById('location');
+    const budgetInput=document.getElementById('budget');
+    const daysInput=document.getElementById('days');
+    const travelTimeInput=document.getElementById('travelTime');
+    const roomTypeInput=document.getElementById('roomType');
+    const vehicleInput=document.getElementById('vehicle');
+    const guideInput=document.getElementById('guide');
+    const experienceInput=document.getElementById('experience');
+    const companionsInput=document.getElementById('companions');
+    const transportInput=document.getElementById('transport');
+    const accommodationInput=document.getElementById('accommodation');
+    const promptInput=document.getElementById('prompt');
+    const outputDiv=document.getElementById('output');
+    const placeholder=document.getElementById('placeholder');
+    const loader=document.getElementById('loader');
+    const errorBox=document.getElementById('error');
+    const languageSelect=document.getElementById('languageSelect');
+    let lastItinerary="";
 
-    let lastItinerary = "";
+    function showLoader(){loader.classList.remove('hidden');}
+    function hideLoader(){loader.classList.add('hidden');}
+    function showOutput(md){outputDiv.innerHTML=marked.parse(md);outputDiv.classList.remove('hidden');placeholder.classList.add('hidden');}
+    function showError(msg){errorBox.textContent=msg;errorBox.classList.remove('hidden');}
+    function hideError(){errorBox.classList.add('hidden');}
 
-    async function getTripPlan(fullPrompt) {
-      const response = await fetch(`${baseURL}/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": referer,
-          "X-Title": title,
+    /* 🔑 API Setup */
+    const apiKey="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"; // 🔒 Replace with your OpenRouter API key safely
+    const baseURL="https://openrouter.ai/api/v1";
+
+    async function getTripPlan(fullPrompt){
+      // ✅ Fixed: added backticks for template literals and quotes for Authorization
+      const response=await fetch(`${baseURL}/chat/completions`,{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":`Bearer ${apiKey}`,
+          "HTTP-Referer":"https://yourdomain.com",
+          "X-Title":"Trip Planner"
         },
-        body: JSON.stringify({
-          model: "openai/gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are GlobeQuest AI, a premium Indian travel consultant.
-              Generate a day-wise travel itinerary in Markdown based on user's location, description, and INR budget.
-              Use Indian currency (₹), include estimated daily costs, accommodation, transport, food, and attractions.
-              Suggest 2–3 hotel options within budget and include emojis and Google Maps links.`
-            },
-            { role: "user", content: fullPrompt }
+        body:JSON.stringify({
+          model:"openai/gpt-4o-mini",
+          messages:[
+            {role:"system",content:"You are Trip Planner AI, a professional travel planner. Generate a day-wise itinerary with hotels, experiences, food, INR costs, and emojis. Avoid Google Maps links."},
+            {role:"user",content:fullPrompt}
           ]
         })
       });
-
-      const data = await response.json();
+      if(!response.ok){
+        const errText=await response.text();
+        throw new Error(`API error ${response.status}: ${errText}`);
+      }
+      const data=await response.json();
       return data.choices?.[0]?.message?.content || "";
     }
 
-    async function translateText(text, targetLang) {
-      if (targetLang === "en") return text;
-
-      const response = await fetch(`${baseURL}/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `Translate this text into ${targetLang}, keeping emojis, currency (₹), and formatting.`
-            },
-            { role: "user", content: text }
-          ]
-        })
-      });
-
-      const data = await response.json();
-      return data.choices?.[0]?.message?.content || text;
-    }
-
-    form.addEventListener("submit", async (e) => {
+    /* Form Submit */
+    form.addEventListener("submit",async(e)=>{
       e.preventDefault();
-
-      const location = locationInput.value.trim();
-      const budget = budgetInput.value.trim();
-      const description = promptInput.value.trim();
-
-      if (!location || !budget || !description) {
-        alert("Please fill in all fields: location, budget (₹), and trip description!");
-        return;
+      hideError();
+      showLoader();
+      const fullPrompt=`Create a ${daysInput.value}-day trip for ${locationInput.value} in ${travelTimeInput.value}. 
+      Budget ₹${budgetInput.value}. Room: ${roomTypeInput.value}. Vehicle: ${vehicleInput.value}. Guide: ${guideInput.value}. 
+      Experience: ${experienceInput.value}. Companions: ${companionsInput.value}. Transport: ${transportInput.value}. 
+      Accommodation: ${accommodationInput.value}. Details: ${promptInput.value}. 
+      Language: ${languageSelect.value}.`;
+      try{
+        const itinerary=await getTripPlan(fullPrompt);
+        lastItinerary=itinerary;
+        showOutput(itinerary);
+      }catch(err){
+        showError(err.message);
+      }finally{
+        hideLoader();
       }
-
-      const combinedPrompt = `
-        Plan a personalized trip to ${location}.
-        Total budget: ₹${budget} INR.
-        Trip details: ${description}.
-        Include cost breakdown in rupees (₹) for hotels, food, and activities.
-      `;
-
-      loader.classList.remove("hidden");
-      errorBox.classList.add("hidden");
-      placeholder.classList.add("hidden");
-      outputDiv.classList.add("hidden");
-
-      try {
-        const itinerary = await getTripPlan(combinedPrompt);
-        lastItinerary = itinerary;
-        const translated = await translateText(itinerary, languageSelect.value);
-
-        outputDiv.innerHTML = `<div class="prose prose-sm sm:prose-lg max-w-none text-gray-800">${marked.parse(translated)}</div>`;
-        outputDiv.classList.remove("hidden");
-        lucide.createIcons();
-      } catch (error) {
-        errorBox.textContent = "❌ Failed to generate itinerary: " + error.message;
-        errorBox.classList.remove("hidden");
-      } finally {
-        loader.classList.add("hidden");
-      }
-    });
-
-    languageSelect.addEventListener("change", async () => {
-      if (!lastItinerary) return;
-      loader.classList.remove("hidden");
-      const translated = await translateText(lastItinerary, languageSelect.value);
-      outputDiv.innerHTML = `<div class="prose prose-sm sm:prose-lg max-w-none text-gray-800">${marked.parse(translated)}</div>`;
-      loader.classList.add("hidden");
-      lucide.createIcons();
     });
   </script>
 </body>
 </html>
+
 
